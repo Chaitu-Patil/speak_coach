@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c0e14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SpeakCoach">
+  <meta name="description" content="Upload a video of your speech and get AI-powered public speaking feedback">
+  <link rel="manifest" href="manifest.json">
+  <title>SpeakCoach - AI Public Speaking Tutor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════ UPLOAD SCREEN ══════════════ -->
+<div id="uploadScreen" class="screen">
+
+  <nav class="upload-nav">
+    <div class="wordmark">
+      <div class="wordmark-dot"></div>
+      SpeakCoach
+    </div>
+    <span class="nav-tag">AI Presentation Tutor</span>
+  </nav>
+
+  <div class="upload-hero">
+    <div class="hero-eyebrow">Delivery Feedback Only</div>
+    <h1 class="upload-title">
+      See yourself the way<br>your <em>audience</em> does.
+    </h1>
+    <p class="upload-sub">
+      Upload any speaking video. Get scored feedback on body language, eye contact, voice modulation, pace, projection, and presence.
+    </p>
+
+    <!-- DROP ZONE -->
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="video/*">
+      <span class="drop-icon">🎬</span>
+      <div class="drop-title">Drop your video here</div>
+      <p class="drop-sub">or click to browse your files</p>
+      <div class="drop-formats">
+        <span class="format-pill">MP4</span>
+        <span class="format-pill">MOV</span>
+        <span class="format-pill">WEBM</span>
+        <span class="format-pill">AVI</span>
+      </div>
+    </div>
+
+    <!-- VIDEO PREVIEW -->
+    <div class="video-preview-wrap" id="videoPreviewWrap">
+      <video class="video-preview" id="videoPreview" controls muted></video>
+      <div class="video-meta">
+        <div class="video-meta-info">
+          <div class="video-filename" id="videoFilename"></div>
+          <div class="video-filesize" id="videoFilesize"></div>
+        </div>
+        <button class="btn-change" onclick="changeVideo()">Change video</button>
+      </div>
+    </div>
+
+    <!-- CONTEXT -->
+    <div class="context-wrap">
+      <label class="context-label" for="contextInput">Context (optional)</label>
+      <input
+        class="context-input"
+        id="contextInput"
+        placeholder="e.g. Class presentation, job interview, team meeting, TED-style talk..."
+      >
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- CTA -->
+    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+      <span class="btn-label">Analyze my speaking</span>
+      <div class="spinner"></div>
+    </button>
+    <p class="analyze-note">Delivery only — your content stays private and is never evaluated</p>
+  </div>
+</div>
+
+<!-- ══════════════ LOADING SCREEN ══════════════ -->
+<div id="loadingScreen" class="screen">
+  <div class="loading-orb"></div>
+  <div class="loading-title">Analyzing your delivery...</div>
+  <div class="loading-steps">
+    <div class="loading-step" id="step1">
+      <span class="step-icon">📤</span> Uploading your video...
+    </div>
+    <div class="loading-step" id="step2">
+      <span class="step-icon">👁️</span> Analyzing body language &amp; eye contact...
+    </div>
+    <div class="loading-step" id="step3">
+      <span class="step-icon">🎙️</span> Evaluating voice modulation &amp; projection...
+    </div>
+    <div class="loading-step" id="step4">
+      <span class="step-icon">✨</span> Generating structured feedback...
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RESULTS SCREEN ══════════════ -->
+<div id="resultsScreen" class="screen">
+
+  <nav class="results-nav">
+    <div class="wordmark">
+      <div class="wordmark-dot"></div>
+      SpeakCoach
+    </div>
+    <button class="btn-new" onclick="goHome()">← Analyze another</button>
+  </nav>
+
+  <!-- OVERALL SCORE -->
+  <div class="score-hero">
+    <div class="overall-ring-wrap">
+      <svg class="overall-svg" width="120" height="120" viewBox="0 0 120 120">
+        <circle class="overall-bg" cx="60" cy="60" r="50"/>
+        <circle class="overall-fill" id="overallFill" cx="60" cy="60" r="50"/>
+      </svg>
+      <div class="overall-center">
+        <div class="overall-num" id="overallNum">0</div>
+        <div class="overall-denom">out of 10</div>
+      </div>
+    </div>
+    <div class="score-hero-text">
+      <div class="score-label">Overall Delivery Score</div>
+      <h2 class="score-headline" id="overallHeadline">Analysis Complete</h2>
+      <p class="score-summary" id="overallSummary"></p>
+    </div>
+  </div>
+
+  <!-- SECTION LABEL -->
+  <div class="section-divider">
+    <span class="divider-label">Delivery Breakdown</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="categories-grid" id="categoriesGrid"></div>
+
+  <!-- PRIORITY FOCUS -->
+  <div class="section-divider">
+    <span class="divider-label">Your #1 Priority</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="priority-wrap">
+    <div class="priority-card">
+      <div class="priority-icon-wrap">🎯</div>
+      <div class="priority-content">
+        <div class="priority-label">Focus area — <span id="priorityCat"></span></div>
+        <div class="priority-title" id="priorityTitle"></div>
+        <p class="priority-text" id="priorityText"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENCOURAGEMENT -->
+  <div class="encouragement-wrap">
+    <div class="encouragement-card">
+      <div class="encouragement-text">
+        <strong>Keep going — you're improving.</strong>
+        <span id="encouragementText"></span>
+      </div>
+      <button class="btn-analyze-again" onclick="goHome()">Analyze another video</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
